@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Master Stock & Analytics</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    body { background-color: #0b1120; color: #f8fafc; min-height: 100vh; padding: 24px; }
+    .container { max-width: 1280px; margin: 0 auto; }
+    
+    /* Header */
+    .header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+    .title { font-size: 26px; font-weight: 700; color: #2dd4bf; letter-spacing: 0.5px; }
+    .subtitle { color: #94a3b8; font-size: 13px; margin-top: 4px; }
+    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    
+    /* Buttons & Inputs */
+    button { cursor: pointer; border: none; border-radius: 8px; font-size: 13px; font-weight: 500; padding: 9px 14px; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-indigo { background: #4f46e5; color: #fff; }
+    .btn-indigo:hover { background: #4338ca; }
+    .btn-emerald { background: #10b981; color: #fff; }
+    .btn-emerald:hover { background: #059669; }
+    .btn-blue { background: #3b82f6; color: #fff; }
+    .btn-blue:hover { background: #2563eb; }
+    .btn-amber { background: #d97706; color: #fff; }
+    .btn-amber:hover { background: #b45309; }
+    .btn-ghost { background: transparent; color: #cbd5e1; border: 1px solid #334155; }
+    .btn-ghost:hover { background: #1e293b; }
+    .btn-icon { padding: 5px 8px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; font-size: 12px; }
+    .btn-icon:hover { background: #334155; }
+    
+    .select-box { background: #162032; border: 1px solid #263449; border-radius: 8px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; }
+    .select-box span { font-size: 12px; color: #94a3b8; }
+    select, input { background: #0f172a; border: 1px solid #334155; color: #f8fafc; border-radius: 8px; padding: 9px 12px; font-size: 13px; width: 100%; }
+    .select-box select { border: none; background: transparent; padding: 2px; width: auto; }
+    select:focus, input:focus { outline: none; border-color: #38bdf8; }
+    
+    /* Tabs */
+    .tabs { display: flex; flex-wrap: wrap; gap: 24px; border-bottom: 1px solid #1e293b; padding-bottom: 12px; margin-bottom: 24px; }
+    .tab-btn { background: transparent; color: #94a3b8; padding: 0 0 10px 0; border-radius: 0; font-size: 14px; border-bottom: 2px solid transparent; }
+    .tab-btn:hover { color: #e2e8f0; }
+    .tab-btn.active { color: #38bdf8; border-bottom: 2px solid #38bdf8; font-weight: 600; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    /* Cards & Grid */
+    .card { background: #162032; border: 1px solid #263449; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 24px; }
+    .kpi-label { color: #94a3b8; font-size: 12px; margin-bottom: 8px; }
+    .kpi-val-green { font-size: 28px; font-weight: 700; color: #10b981; }
+    .kpi-val-blue { font-size: 28px; font-weight: 700; color: #38bdf8; }
+    .kpi-val-purple { font-size: 28px; font-weight: 700; color: #818cf8; }
+    
+    /* Table */
+    .table-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
+    .table-title { font-size: 17px; font-weight: 600; }
+    .table-wrap { overflow-x: auto; max-height: 520px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { position: sticky; top: 0; background: #1e293b; color: #cbd5e1; font-size: 11px; text-transform: uppercase; padding: 14px 16px; border-bottom: 1px solid #334155; z-index: 10; }
+    td { padding: 13px 16px; border-bottom: 1px solid #1e293b; font-size: 13px; }
+    tr:hover td { background: rgba(30, 41, 59, 0.4); }
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    
+    /* Badges */
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+    .badge-urgent { background: rgba(136, 19, 55, 0.5); color: #fb7185; border: 1px solid rgba(159, 18, 57, 0.6); }
+    .badge-normal { background: rgba(6, 78, 59, 0.5); color: #34d399; border: 1px solid rgba(6, 95, 70, 0.6); }
+    .badge-in { background: rgba(6, 78, 59, 0.6); color: #34d399; border: 1px solid #065f46; border-radius: 6px; }
+    .badge-out { background: rgba(136, 19, 55, 0.6); color: #fb7185; border: 1px solid #9f1239; border-radius: 6px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .dot-red { background: #f43f5e; }
+    .dot-green { background: #10b981; }
+    
+    /* Forms & Layouts */
+    .tx-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 24px; }
+    @media (max-width: 900px) { .tx-grid { grid-template-columns: 1fr; } }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; color: #cbd5e1; margin-bottom: 6px; }
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    @media (max-width: 600px) { .form-row-2, .form-row-3 { grid-template-columns: 1fr; } }
+    
+    /* Custom SVG Chart */
+    .chart-box { background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; border-radius: 12px; padding: 20px; margin-top: 16px; overflow-x: auto; }
+    
+    /* Modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+    .modal-backdrop.open { display: flex; }
+    .modal-card { background: #162032; border: 1px solid #334155; border-radius: 12px; width: 100%; max-width: 440px; padding: 24px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .modal-title { font-size: 17px; font-weight: 700; }
+    .close-btn { background: transparent; color: #94a3b8; font-size: 20px; padding: 0; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="title">PROJECT INVENTORY & ANALYTICS</div>
+      <div class="subtitle">ระบบวิเคราะห์ข้อมูลคลังสินค้าและประวัติการใช้น้ำดื่มเชิงลึกแบบอินเตอร์แอคทีฟ</div>
+    </div>
+    <div class="controls">
+      <button class="btn-indigo" onclick="openModal('addProjectModal')">➕ เพิ่มโครงการใหม่</button>
+      <div class="select-box">
+        <span>เลือกส่งออก:</span>
+        <select id="exportProjectSelect">
+          <option value="ALL">ทั้งหมดทุกโครงการ</option>
+        </select>
+      </div>
+      <button class="btn-emerald" onclick="exportToExcel()">📊 Export Excel (.xls)</button>
+      <button class="btn-blue" onclick="exportToCSV()">📄 Export CSV</button>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" id="btn-tab-master" onclick="switchTab('tab-master')">📦 Master Stock</button>
+    <button class="tab-btn" id="btn-tab-analytics" onclick="switchTab('tab-analytics')">📊 วิเคราะห์ปริมาณใช้รายเดือน</button>
+    <button class="tab-btn" id="btn-tab-monthly" onclick="switchTab('tab-monthly')">📅 เพิ่มประวัติรายเดือน</button>
+    <button class="tab-btn" id="btn-tab-tx" onclick="switchTab('tab-tx')">📝 บันทึกธุรกรรม รับ-จ่าย</button>
+  </div>
+
+  <!-- TAB 1: MASTER STOCK -->
+  <div id="tab-master" class="tab-content active">
+    <div class="kpi-grid">
+      <div class="card">
+        <div class="kpi-label">มูลค่าสต็อกรวมทั้งหมด (144 ฿ / Pack)</div>
+        <div class="kpi-val-green" id="kpi-total-value">0 ฿</div>
+      </div>
+      <div class="card">
+        <div class="kpi-label">คงเหลือสะสม (PACK)</div>
+        <div class="kpi-val-blue" id="kpi-total-packs">0 Pack</div>
+      </div>
+      <div class="card">
+        <div class="kpi-label">คงเหลือสะสม (ขวด) (24 ขวด / Pack)</div>
+        <div class="kpi-val-purple" id="kpi-total-bottles">0 ขวด</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-header">
+        <div class="table-title">รายการโครงการคลังสินค้าคงเหลือ</div>
+        <div style="width: 280px; max-width: 100%;">
+          <input type="text" id="searchProjectInput" onkeyup="renderMasterTable()" placeholder="🔍 ค้นหาชื่อโครงการ หรือ รหัส...">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ชื่อโครงการ</th>
+              <th>รหัส</th>
+              <th class="text-right">คงเหลือ (PACK)</th>
+              <th class="text-right">คงเหลือ (ขวด)</th>
+              <th class="text-right">มูลค่าสต็อกปัจจุบัน</th>
+              <th class="text-center">สถานะจัดซื้อ (&lt;40 Pack)</th>
+              <th class="text-center">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="masterTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: ANALYTICS -->
+  <div id="tab-analytics" class="tab-content">
+    <div class="card">
+      <div class="table-header">
+        <div>
+          <div class="table-title">วิเคราะห์ประวัติปริมาณการใช้รายเดือน (มกราคม - ธันวาคม)</div>
+          <div class="subtitle">สามารถเลือกคัดกรองดูเป็นรายโครงการเดี่ยวหรือภาพรวมสะสมทั้งหมดได้</div>
+        </div>
+        <div style="width: 300px; max-width: 100%;">
+          <label class="form-label">เลือกโครงการ</label>
+          <select id="analyticsProjectSelect" onchange="renderAnalyticsChart()">
+            <option value="ALL">🌐 ภาพรวมทั้งหมดสะสม</option>
+          </select>
+        </div>
+      </div>
+      <div class="chart-box" id="chartContainer"></div>
+    </div>
+  </div>
+
+  <!-- TAB 3: ADD MONTHLY HISTORY -->
+  <div id="tab-monthly" class="tab-content">
+    <div class="card" style="max-width: 680px; margin: 0 auto;">
+      <div style="margin-bottom: 20px;">
+        <div class="table-title">📅 บันทึกหรือแก้ไขข้อมูลประวัติการใช้รายเดือน</div>
+        <div class="subtitle">ข้อมูลที่เพิ่มหรือแก้ไขจะเข้าไปอัปเดตสถิติกราฟแท่งทันที</div>
+      </div>
+      <form onsubmit="handleMonthlySubmit(event)">
+        <div class="form-group">
+          <label class="form-label">โครงการ *</label>
+          <select id="monthlyProjectSelect" required></select>
+        </div>
+        <div class="form-row-3 form-group">
+          <div>
+            <label class="form-label">เดือน *</label>
+            <select id="monthlyMonthSelect" required>
+              <option value="0">มกราคม</option>
+              <option value="1">กุมภาพันธ์</option>
+              <option value="2">มีนาคม</option>
+              <option value="3">เมษายน</option>
+              <option value="4">พฤษภาคม</option>
+              <option value="5">มิถุนายน</option>
+              <option value="6">กรกฎาคม</option>
+              <option value="7">สิงหาคม</option>
+              <option value="8">กันยายน</option>
+              <option value="9">ตุลาคม</option>
+              <option value="10">พฤศจิกายน</option>
+              <option value="11">ธันวาคม</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">รูปแบบการบันทึก *</label>
+            <select id="monthlyModeSelect">
+              <option value="ADD">➕ บวกเพิ่มจากยอดเดิม</option>
+              <option value="SET">✏️ แทนที่ยอดเดิม (แก้ไข)</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">จำนวน (Pack) *</label>
+            <input type="number" id="monthlyPackInput" min="0" required placeholder="ระบุจำนวนแพ็ค">
+          </div>
+        </div>
+        <div style="text-align: right; margin-top: 20px;">
+          <button type="submit" class="btn-blue">💾 บันทึกข้อมูลประวัติ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TAB 4: TRANSACTIONS -->
+  <div id="tab-tx" class="tab-content">
+    <div class="tx-grid">
+      <div class="card" style="height: fit-content;">
+        <div class="table-title" style="margin-bottom: 18px;">📝 บันทึกรายการ รับเข้า - จ่ายออก</div>
+        <form onsubmit="handleTxSubmit(event)">
+          <div class="form-group">
+            <label class="form-label">โครงการ *</label>
+            <select id="txProjectSelect" required></select>
+          </div>
+          <div class="form-row-2 form-group">
+            <div>
+              <label class="form-label">ประเภทรายการ *</label>
+              <select id="txTypeSelect" required>
+                <option value="IN">📥 รับเข้า (Stock In)</option>
+                <option value="OUT">📤 จ่ายออก (Stock Out)</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">จำนวน (Pack) *</label>
+              <input type="number" id="txPackInput" min="1" required placeholder="ระบุจำนวน">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ผู้บันทึกรายการ *</label>
+            <input type="text" id="txUserInput" required placeholder="ชื่อเจ้าหน้าที่">
+          </div>
+          <div class="form-group">
+            <label class="form-label">หมายเหตุ</label>
+            <input type="text" id="txNoteInput" placeholder="เช่น อ้างอิงเลขที่ PO หรือเบิกหน้างาน">
+          </div>
+          <button type="submit" class="btn-blue" style="width: 100%; justify-content: center; margin-top: 8px;">+ บันทึกธุรกรรมสินค้า</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="table-header">
+          <div class="table-title">📋 ประวัติธุรกรรมสินค้าคงคลังล่าสุด (Inventory Logs)</div>
+          <button type="button" onclick="resetDemoData()" style="background:transparent; color:#94a3b8; text-decoration:underline; padding:0; font-size:12px;">รีเซ็ตข้อมูลเริ่มต้น</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>วันที่-เวลา</th>
+                <th>ชื่อโครงการ</th>
+                <th class="text-center">ประเภท</th>
+                <th class="text-right">จำนวน</th>
+                <th>ผู้บันทึก</th>
+                <th>หมายเหตุ</th>
+                <th class="text-center">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="txTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADD PROJECT -->
+<div id="addProjectModal" class="modal-backdrop">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">➕ เพิ่มโครงการใหม่เข้าระบบ</div>
+      <button class="close-btn" onclick="closeModal('addProjectModal')">&times;</button>
+    </div>
+    <form onsubmit="handleAddProject(event)">
+      <div class="form-group">
+        <label class="form-label">ชื่อโครงการ *</label>
+        <input type="text" id="newProjName" required placeholder="เช่น MANTANA บางนา กม.7">
+      </div>
+      <div class="form-row-2 form-group">
+        <div>
+          <label class="form-label">รหัสโครงการ</label>
+          <input type="text" id="newProjCode" placeholder="เช่น LH:450 หรือ -">
+        </div>
+        <div>
+          <label class="form-label">สต็อกตั้งต้น (Pack) *</label>
+          <input type="number" id="newProjStock" min="0" value="0" required>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
+        <button type="button" class="btn-ghost" onclick="closeModal('addProjectModal')">ยกเลิก</button>
+        <button type="submit" class="btn-indigo">บันทึกโครงการ</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: EDIT PROJECT -->
+<div id="editProjectModal" class="modal-backdrop">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">✏️ แก้ไขข้อมูลโครงการ</div>
+      <button class="close-btn" onclick="closeModal('editProjectModal')">&times;</button>
+    </div>
+    <form onsubmit="handleEditProjectSubmit(event)">
+      <input type="hidden" id="editProjId">
+      <div class="form-group">
+        <label class="form-label">ชื่อโครงการ *</label>
+        <input type="text" id="editProjName" required>
+      </div>
+      <div class="form-row-2 form-group">
+        <div>
+          <label class="form-label">รหัสโครงการ</label>
+          <input type="text" id="editProjCode">
+        </div>
+        <div>
+          <label class="form-label">คงเหลือปัจจุบัน (Pack) *</label>
+          <input type="number" id="editProjStock" min="0" required>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
+        <button type="button" class="btn-ghost" onclick="closeModal('editProjectModal')">ยกเลิก</button>
+        <button type="submit" class="btn-amber">บันทึกการแก้ไข</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: EDIT TRANSACTION -->
+<div id="editTxModal" class="modal-backdrop">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">✏️ แก้ไขรายการธุรกรรม (<span id="editTxIdLabel" style="color:#38bdf8;"></span>)</div>
+      <button class="close-btn" onclick="closeModal('editTxModal')">&times;</button>
+    </div>
+    <form onsubmit="handleEditTxSubmit(event)">
+      <input type="hidden" id="editTxId">
+      <div class="form-group">
+        <label class="form-label">โครงการ</label>
+        <input type="text" id="editTxProjName" disabled style="opacity:0.6;">
+      </div>
+      <div class="form-row-2 form-group">
+        <div>
+          <label class="form-label">ประเภทรายการ *</label>
+          <select id="editTxType" required>
+            <option value="IN">📥 รับเข้า (Stock In)</option>
+            <option value="OUT">📤 จ่ายออก (Stock Out)</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">จำนวน (Pack) *</label>
+          <input type="number" id="editTxPacks" min="1" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ผู้บันทึกรายการ *</label>
+        <input type="text" id="editTxUser" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">หมายเหตุ</label>
+        <input type="text" id="editTxNote">
+      </div>
+      <div style="font-size:11px; color:#fbbf24; margin-bottom:14px;">* ระบบจะคำนวณคืนยอดเดิมและปรับปรุงสต็อกคงเหลือใหม่ให้อัตโนมัติ</div>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button type="button" class="btn-ghost" onclick="closeModal('editTxModal')">ยกเลิก</button>
+        <button type="submit" class="btn-amber">บันทึกการแก้ไข</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const BOTTLES_PER_PACK = 24;
+  const PRICE_PER_PACK = 144;
+  const URGENT_THRESHOLD = 40;
+  const MONTHS_TH = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+
+  // ข้อมูลโครงการและประวัติการใช้รายเดือนครบทั้ง 15 โครงการ
+  const defaultProjects = [
+    { id: 'P01', name: 'MANTANA ณ ราชพฤกษ์', code: 'LH:420', stock: 100, monthly: [45, 50, 60, 75, 65, 55, 50, 60, 55, 70, 65, 80] },
+    { id: 'P02', name: 'NANTAWAN Bangna km 15', code: 'LH:388', stock: 50, monthly: [30, 35, 40, 55, 45, 40, 35, 40, 45, 50, 45, 60] },
+    { id: 'P03', name: 'NANTAWAN Bangna km 15 บริการ', code: '-', stock: 15, monthly: [10, 15, 12, 20, 18, 15, 14, 16, 15, 22, 18, 25] },
+    { id: 'P04', name: 'NANTAWAN POOL VILLA พระราม9 กรุงเทพกรีฑาตัดใหม่', code: 'LH:395', stock: 35, monthly: [40, 45, 50, 65, 55, 50, 45, 50, 55, 60, 55, 70] },
+    { id: 'P05', name: 'นันทวัน ปิ่นเกล้า-กาญจนา', code: 'LH:391', stock: 40, monthly: [35, 40, 45, 60, 50, 45, 40, 45, 50, 55, 50, 65] },
+    { id: 'P06', name: 'CHAIYAPRUEK 2 รังสิต คลอง4', code: 'LH:402', stock: 380, monthly: [80, 85, 95, 110, 100, 90, 85, 90, 95, 105, 100, 120] },
+    { id: 'P07', name: 'inizio บางนา', code: 'LH:315', stock: 410, monthly: [90, 95, 105, 125, 115, 100, 95, 105, 110, 120, 115, 135] },
+    { id: 'P08', name: 'vie ราชพฤกษ์ตัดใหม่', code: 'LH:410', stock: 390, monthly: [75, 80, 90, 105, 95, 85, 80, 85, 90, 100, 95, 115] },
+    { id: 'P09', name: 'CHAIYAPRUEK บางนา กม.13', code: 'LH:377', stock: 220, monthly: [60, 65, 75, 90, 80, 70, 65, 70, 75, 85, 80, 95] },
+    { id: 'P10', name: 'Villaggio บางใหญ่', code: 'LH:360', stock: 180, monthly: [55, 60, 70, 85, 75, 65, 60, 65, 70, 80, 75, 90] },
+    { id: 'P11', name: 'MANTANA Barom-Thawiwatthana', code: 'LH:415', stock: 145, monthly: [50, 55, 65, 80, 70, 60, 55, 60, 65, 75, 70, 85] },
+    { id: 'P12', name: 'LADAWAN พระราม 2', code: 'LH:399', stock: 25, monthly: [30, 35, 40, 50, 45, 40, 35, 40, 45, 50, 45, 55] },
+    { id: 'P13', name: 'Siwalee ศรีนครินทร์-ร่มเกล้า', code: 'LH:372', stock: 260, monthly: [65, 70, 80, 95, 85, 75, 70, 75, 80, 90, 85, 100] },
+    { id: 'P14', name: 'INDY บางนา-รามคำแหง 2', code: 'LH:385', stock: 30, monthly: [40, 45, 55, 70, 60, 50, 45, 50, 55, 65, 60, 75] },
+    { id: 'P15', name: 'VIVE กรุงเทพกรีฑาตัดใหม่', code: 'LH:425', stock: 95, monthly: [35, 40, 45, 60, 50, 45, 40, 45, 50, 55, 50, 65] }
+  ];
+
+  // ประวัติธุรกรรมรับ-จ่ายครบทั้ง 15 รายการ
+  const defaultTransactions = [
+    { id: 'TX-015', date: '2026-11-24 10:15', projectId: 'P01', projectName: 'MANTANA ณ ราชพฤกษ์', type: 'IN', packs: 50, user: 'Buyer_A', note: 'รับสินค้าตาม PO-26045' },
+    { id: 'TX-014', date: '2026-11-23 15:40', projectId: 'P12', projectName: 'LADAWAN พระราม 2', type: 'OUT', packs: 15, user: 'Store_B', note: 'เบิกรับรองลูกค้า VIP เยี่ยมชมโครงการ' },
+    { id: 'TX-013', date: '2026-11-22 11:20', projectId: 'P14', projectName: 'INDY บางนา-รามคำแหง 2', type: 'OUT', packs: 20, user: 'Store_C', note: 'เบิกใช้สำนักงานขายและหน้างาน' },
+    { id: 'TX-012', date: '2026-11-20 14:10', projectId: 'P06', projectName: 'CHAIYAPRUEK 2 รังสิต คลอง4', type: 'IN', packs: 120, user: 'Buyer_A', note: 'รับสินค้าประจำเดือน พ.ย. (PO-26041)' },
+    { id: 'TX-011', date: '2026-11-18 09:45', projectId: 'P11', projectName: 'MANTANA Barom-Thawiwatthana', type: 'OUT', packs: 25, user: 'Store_A', note: 'เบิกจัดงาน Pre-Sale โซนใหม่' },
+    { id: 'TX-010', date: '2026-11-15 16:00', projectId: 'P04', projectName: 'NANTAWAN POOL VILLA พระราม9 กรุงเทพกรีฑาตัดใหม่', type: 'OUT', packs: 15, user: 'Store_D', note: 'เบิกใช้สโมสรและสำนักงานขาย' },
+    { id: 'TX-009', date: '2026-11-12 13:30', projectId: 'P13', projectName: 'Siwalee ศรีนครินทร์-ร่มเกล้า', type: 'IN', packs: 100, user: 'Buyer_B', note: 'รับสินค้าตาม PO-26038' },
+    { id: 'TX-008', date: '2026-11-10 10:05', projectId: 'P15', projectName: 'VIVE กรุงเทพกรีฑาตัดใหม่', type: 'OUT', packs: 20, user: 'Store_B', note: 'เบิกต้อนรับลูกค้าเข้าชมบ้านตัวอย่าง' },
+    { id: 'TX-007', date: '2026-11-08 14:50', projectId: 'P03', projectName: 'NANTAWAN Bangna km 15 บริการ', type: 'OUT', packs: 10, user: 'Service_01', note: 'เบิกใช้ฝ่ายบริการหลังการขาย' },
+    { id: 'TX-006', date: '2026-11-05 11:15', projectId: 'P02', projectName: 'NANTAWAN Bangna km 15', type: 'OUT', packs: 30, user: 'Store_C', note: 'เบิกใช้กิจกรรม Open House' },
+    { id: 'TX-005', date: '2026-10-14 08:30', projectId: 'P07', projectName: 'inizio บางนา', type: 'OUT', packs: 10, user: 'Store_D', note: 'เบิกหน้างานก่อสร้าง' },
+    { id: 'TX-004', date: '2026-10-13 16:45', projectId: 'P08', projectName: 'vie ราชพฤกษ์ตัดใหม่', type: 'IN', packs: 50, user: 'Buyer_A', note: 'รับสินค้าตาม PO-26012' },
+    { id: 'TX-003', date: '2026-10-12 10:15', projectId: 'P09', projectName: 'CHAIYAPRUEK บางนา กม.13', type: 'OUT', packs: 20, user: 'Store_C', note: 'เบิกใช้กิจกรรมโครงการ' },
+    { id: 'TX-002', date: '2026-10-11 14:00', projectId: 'P07', projectName: 'inizio บางนา', type: 'OUT', packs: 15, user: 'Store_B', note: 'เบิกจ่ายสำนักงานขาย' },
+    { id: 'TX-001', date: '2026-10-10 09:30', projectId: 'P10', projectName: 'Villaggio บางใหญ่', type: 'IN', packs: 100, user: 'Buyer_A', note: 'รับสินค้าตาม PO-26010' }
+  ];
+
+  let projects = JSON.parse(localStorage.getItem('water_projects_v3')) || JSON.parse(JSON.stringify(defaultProjects));
+  let transactions = JSON.parse(localStorage.getItem('water_tx_v3')) || JSON.parse(JSON.stringify(defaultTransactions));
+
+  function saveData() {
+    localStorage.setItem('water_projects_v3', JSON.stringify(projects));
+    localStorage.setItem('water_tx_v3', JSON.stringify(transactions));
+  }
+
+  function resetDemoData() {
+    if (confirm('ต้องการล้างข้อมูลที่แก้ไขทั้งหมดและกลับไปใช้ข้อมูลเริ่มต้นใช่หรือไม่?')) {
+      projects = JSON.parse(JSON.stringify(defaultProjects));
+      transactions = JSON.parse(JSON.stringify(defaultTransactions));
+      saveData();
+      refreshAllUI();
+    }
+  }
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('btn-' + tabId).classList.add('active');
+    if (tabId === 'tab-analytics') renderAnalyticsChart();
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  function populateProjectDropdowns() {
+    const configs = [
+      { id: 'analyticsProjectSelect', hasAll: true, allLabel: '🌐 ภาพรวมทั้งหมดสะสม' },
+      { id: 'exportProjectSelect', hasAll: true, allLabel: 'ทั้งหมดทุกโครงการ' },
+      { id: 'monthlyProjectSelect', hasAll: false },
+      { id: 'txProjectSelect', hasAll: false }
+    ];
+    configs.forEach(c => {
+      const el = document.getElementById(c.id);
+      const prev = el.value;
+      el.innerHTML = '';
+      if (c.hasAll) {
+        const opt = document.createElement('option');
+        opt.value = 'ALL'; opt.textContent = c.allLabel;
+        el.appendChild(opt);
+      }
+      projects.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id; opt.textContent = p.name;
+        el.appendChild(opt);
+      });
+      if (prev && Array.from(el.options).some(o => o.value === prev)) el.value = prev;
+    });
+  }
+
+  // ==================== TAB 1: MASTER STOCK ====================
+  function renderMasterTable() {
+    const search = document.getElementById('searchProjectInput').value.toLowerCase();
+    const tbody = document.getElementById('masterTableBody');
+    tbody.innerHTML = '';
+
+    let totalPacks = 0;
+    projects.forEach(p => totalPacks += p.stock);
+    document.getElementById('kpi-total-value').textContent = (totalPacks * PRICE_PER_PACK).toLocaleString() + ' ฿';
+    document.getElementById('kpi-total-packs').textContent = totalPacks.toLocaleString() + ' Pack';
+    document.getElementById('kpi-total-bottles').textContent = (totalPacks * BOTTLES_PER_PACK).toLocaleString() + ' ขวด';
+
+    const filtered = projects.filter(p => p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search));
+    filtered.forEach(p => {
+      const isUrgent = p.stock < URGENT_THRESHOLD;
+      const badge = isUrgent
+        ? `<span class="badge badge-urgent"><span class="dot dot-red"></span> ด่วนที่สุด (Urgent)</span>`
+        : `<span class="badge badge-normal"><span class="dot dot-green"></span> ปกติ (Low Priority)</span>`;
+
+      tbody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td style="font-weight:500;">${p.name}</td>
+          <td style="color:#94a3b8;">${p.code || '-'}</td>
+          <td class="text-right" style="color:#38bdf8; font-weight:600;">${p.stock.toLocaleString()}</td>
+          <td class="text-right" style="color:#818cf8;">${(p.stock * BOTTLES_PER_PACK).toLocaleString()}</td>
+          <td class="text-right" style="color:#10b981; font-weight:500;">${(p.stock * PRICE_PER_PACK).toLocaleString()} ฿</td>
+          <td class="text-center">${badge}</td>
+          <td class="text-center">
+            <button class="btn-icon" title="แก้ไข" onclick="openEditProject('${p.id}')">✏️</button>
+            <button class="btn-icon" title="ลบ" onclick="deleteProject('${p.id}')">🗑️</button>
+          </td>
+        </tr>
+      `);
+    });
+  }
+
+  function openEditProject(id) {
+    const p = projects.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('editProjId').value = p.id;
+    document.getElementById('editProjName').value = p.name;
+    document.getElementById('editProjCode').value = p.code;
+    document.getElementById('editProjStock').value = p.stock;
+    openModal('editProjectModal');
+  }
+
+  function handleEditProjectSubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('editProjId').value;
+    const p = projects.find(x => x.id === id);
+    if (p) {
+      p.name = document.getElementById('editProjName').value.trim();
+      p.code = document.getElementById('editProjCode').value.trim() || '-';
+      p.stock = parseInt(document.getElementById('editProjStock').value) || 0;
+      transactions.forEach(t => { if (t.projectId === id) t.projectName = p.name; });
+      saveData(); refreshAllUI(); closeModal('editProjectModal');
+    }
+  }
+
+  function deleteProject(id) {
+    const p = projects.find(x => x.id === id);
+    if (p && confirm(`ยืนยันการลบโครงการ "${p.name}" ใช่หรือไม่?`)) {
+      projects = projects.filter(x => x.id !== id);
+      saveData(); refreshAllUI();
+    }
+  }
+
+  // ==================== TAB 2: SVG BAR CHART ====================
+  function renderAnalyticsChart() {
+    const selectedId = document.getElementById('analyticsProjectSelect').value;
+    let data = new Array(12).fill(0);
+    let title = 'ภาพรวมปริมาณการใช้สะสมทุกโครงการ (Pack)';
+
+    if (selectedId === 'ALL') {
+      projects.forEach(p => { for (let i = 0; i < 12; i++) data[i] += (p.monthly[i] || 0); });
+    } else {
+      const p = projects.find(x => x.id === selectedId);
+      if (p) { data = [...p.monthly]; title = `ปริมาณการใช้รายเดือน: ${p.name} (Pack)`; }
+    }
+
+    const maxVal = Math.max(...data, 10);
+    const svgW = 960, svgH = 340, padL = 55, padR = 20, padT = 35, padB = 45;
+    const chartW = svgW - padL - padR;
+    const chartH = svgH - padT - padB;
+    const stepX = chartW / 12;
+    const barW = stepX * 0.58;
+
+    let gridLines = '';
+    for (let i = 0; i <= 4; i++) {
+      const val = Math.round((maxVal / 4) * i);
+      const y = padT + chartH - (chartH * (i / 4));
+      gridLines += `<line x1="${padL}" y1="${y}" x2="${svgW - padR}" y2="${y}" stroke="#1e293b" stroke-width="1"/>`;
+      gridLines += `<text x="${padL - 8}" y="${y + 4}" fill="#94a3b8" font-size="11" text-anchor="end">${val.toLocaleString()}</text>`;
+    }
+
+    let bars = '';
+    data.forEach((val, idx) => {
+      const barH = (val / maxVal) * chartH;
+      const x = padL + idx * stepX + (stepX - barW) / 2;
+      const y = padT + chartH - barH;
+      const shortMonth = MONTHS_TH[idx];
+      bars += `
+        <g>
+          <rect x="${x}" y="${y}" width="${barW}" height="${Math.max(barH, 2)}" rx="4" fill="#10b981">
+            <title>${shortMonth}: ${val.toLocaleString()} Pack (${(val * BOTTLES_PER_PACK).toLocaleString()} ขวด)</title>
+          </rect>
+          <text x="${x + barW / 2}" y="${y - 6}" fill="#34d399" font-size="11" font-weight="600" text-anchor="middle">${val > 0 ? val.toLocaleString() : ''}</text>
+          <text x="${x + barW / 2}" y="${padT + chartH + 22}" fill="#cbd5e1" font-size="11" text-anchor="middle">${shortMonth}</text>
+        </g>
+      `;
+    });
+
+    document.getElementById('chartContainer').innerHTML = `
+      <div style="text-align:center; font-size:13px; color:#e2e8f0; margin-bottom:10px; font-weight:600;">${title}</div>
+      <svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%; min-width:680px; height:auto; display:block;">
+        ${gridLines}
+        ${bars}
+      </svg>
+    `;
+  }
+
+  // ==================== TAB 3: MONTHLY HISTORY ====================
+  function handleMonthlySubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('monthlyProjectSelect').value;
+    const mIdx = parseInt(document.getElementById('monthlyMonthSelect').value);
+    const mode = document.getElementById('monthlyModeSelect').value;
+    const packs = parseInt(document.getElementById('monthlyPackInput').value) || 0;
+    const p = projects.find(x => x.id === id);
+    if (p) {
+      p.monthly[mIdx] = mode === 'ADD' ? (p.monthly[mIdx] || 0) + packs : packs;
+      saveData();
+      document.getElementById('monthlyPackInput').value = '';
+      alert(`บันทึกข้อมูลเดือน${MONTHS_TH[mIdx]} ของโครงการ "${p.name}" เรียบร้อยแล้ว!`);
+      renderAnalyticsChart();
+    }
+  }
+
+  // ==================== TAB 4: TRANSACTIONS ====================
+  function renderTxTable() {
+    const tbody = document.getElementById('txTableBody');
+    tbody.innerHTML = '';
+    transactions.forEach(tx => {
+      const badge = tx.type === 'IN'
+        ? `<span class="badge badge-in">รับเข้า</span>`
+        : `<span class="badge badge-out">จ่ายออก</span>`;
+      tbody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td style="color:#94a3b8; font-family:monospace; font-size:12px;">${tx.id}</td>
+          <td style="color:#94a3b8; font-size:12px; white-space:nowrap;">${tx.date}</td>
+          <td style="font-weight:500;">${tx.projectName}</td>
+          <td class="text-center">${badge}</td>
+          <td class="text-right" style="color:#38bdf8; font-weight:600;">${tx.packs.toLocaleString()}</td>
+          <td style="font-size:12px;">${tx.user}</td>
+          <td style="color:#94a3b8; font-size:12px;">${tx.note || '-'}</td>
+          <td class="text-center" style="white-space:nowrap;">
+            <button class="btn-icon" title="แก้ไข" onclick="openEditTx('${tx.id}')">✏️</button>
+            <button class="btn-icon" title="ลบ" onclick="deleteTx('${tx.id}')">🗑️</button>
+          </td>
+        </tr>
+      `);
+    });
+  }
+
+  function handleTxSubmit(e) {
+    e.preventDefault();
+    const projId = document.getElementById('txProjectSelect').value;
+    const type = document.getElementById('txTypeSelect').value;
+    const packs = parseInt(document.getElementById('txPackInput').value);
+    const user = document.getElementById('txUserInput').value.trim();
+    const note = document.getElementById('txNoteInput').value.trim();
+
+    const p = projects.find(x => x.id === projId);
+    if (!p) return;
+    if (type === 'OUT' && p.stock < packs) {
+      alert(`ไม่สามารถจ่ายออกได้ เนื่องจากสต็อกคงเหลือของ "${p.name}" มีเพียง ${p.stock} Pack`);
+      return;
+    }
+
+    if (type === 'IN') p.stock += packs;
+    else {
+      p.stock -= packs;
+      const m = new Date().getMonth();
+      p.monthly[m] = (p.monthly[m] || 0) + packs;
+    }
+
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    transactions.unshift({
+      id: `TX-${String(Date.now()).slice(-4)}`,
+      date: dateStr, projectId: p.id, projectName: p.name,
+      type, packs, user, note
+    });
+
+    saveData(); refreshAllUI();
+    document.getElementById('txPackInput').value = '';
+    document.getElementById('txNoteInput').value = '';
+    alert('บันทึกธุรกรรมและอัปเดตยอดสต็อกเรียบร้อยแล้ว!');
+  }
+
+  function openEditTx(id) {
+    const tx = transactions.find(x => x.id === id);
+    if (!tx) return;
+    document.getElementById('editTxId').value = tx.id;
+    document.getElementById('editTxIdLabel').textContent = tx.id;
+    document.getElementById('editTxProjName').value = tx.projectName;
+    document.getElementById('editTxType').value = tx.type;
+    document.getElementById('editTxPacks').value = tx.packs;
+    document.getElementById('editTxUser').value = tx.user;
+    document.getElementById('editTxNote').value = tx.note;
+    openModal('editTxModal');
+  }
+
+  function handleEditTxSubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('editTxId').value;
+    const newType = document.getElementById('editTxType').value;
+    const newPacks = parseInt(document.getElementById('editTxPacks').value);
+    const tx = transactions.find(x => x.id === id);
+    if (!tx) return;
+
+    const p = projects.find(x => x.id === tx.projectId);
+    if (p) {
+      const reverted = tx.type === 'IN' ? (p.stock - tx.packs) : (p.stock + tx.packs);
+      const updated = newType === 'IN' ? (reverted + newPacks) : (reverted - newPacks);
+      if (updated < 0) {
+        alert(`ไม่สามารถแก้ไขได้ เนื่องจากจะทำให้สต็อกคงเหลือของ "${p.name}" ติดลบ (${updated} Pack)`);
+        return;
+      }
+      p.stock = updated;
+    }
+    tx.type = newType;
+    tx.packs = newPacks;
+    tx.user = document.getElementById('editTxUser').value.trim();
+    tx.note = document.getElementById('editTxNote').value.trim();
+    saveData(); refreshAllUI(); closeModal('editTxModal');
+  }
+
+  function deleteTx(id) {
+    const tx = transactions.find(x => x.id === id);
+    if (tx && confirm(`ยืนยันการลบรายการ "${tx.id}" (${tx.projectName}) ใช่หรือไม่?
+(ระบบจะปรับคืนยอดสต็อกให้อัตโนมัติ)`)) {
+      const p = projects.find(x => x.id === tx.projectId);
+      if (p) {
+        p.stock = tx.type === 'IN' ? Math.max(0, p.stock - tx.packs) : (p.stock + tx.packs);
+      }
+      transactions = transactions.filter(x => x.id !== id);
+      saveData(); refreshAllUI();
+    }
+  }
+
+  // ==================== ADD PROJECT ====================
+  function handleAddProject(e) {
+    e.preventDefault();
+    const name = document.getElementById('newProjName').value.trim();
+    const code = document.getElementById('newProjCode').value.trim() || '-';
+    const stock = parseInt(document.getElementById('newProjStock').value) || 0;
+    projects.push({ id: 'P' + Date.now(), name, code, stock, monthly: new Array(12).fill(0) });
+    saveData(); refreshAllUI();
+    document.getElementById('newProjName').value = '';
+    document.getElementById('newProjCode').value = '';
+    document.getElementById('newProjStock').value = '0';
+    closeModal('addProjectModal');
+    alert(`เพิ่มโครงการ "${name}" เรียบร้อยแล้ว!`);
+  }
+
+  // ==================== EXPORT EXCEL (.xls) & CSV ====================
+  function getExportTarget() {
+    const sel = document.getElementById('exportProjectSelect').value;
+    const targetProjects = sel === 'ALL' ? projects : projects.filter(p => p.id === sel);
+    const targetTx = sel === 'ALL' ? transactions : transactions.filter(t => t.projectId === sel);
+    const fileLabel = sel === 'ALL' ? 'All_Projects' : targetProjects[0].name.replace(/[^a-zA-Z0-9ก-๙]/g, '_');
+    return { targetProjects, targetTx, fileLabel };
+  }
+
+  function exportToExcel() {
+    const { targetProjects, targetTx, fileLabel } = getExportTarget();
+    let html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head><meta charset="UTF-8"></head><body>
+      <h3>1. รายงานสต็อกคงเหลือ (Master Stock)</h3>
+      <table border="1">
+        <tr style="background:#1e293b; color:#fff;">
+          <th>ชื่อโครงการ</th><th>รหัสโครงการ</th><th>คงเหลือ (Pack)</th><th>คงเหลือ (ขวด)</th><th>มูลค่าสต็อก (บาท)</th><th>สถานะจัดซื้อ</th>
+        </tr>
+        ${targetProjects.map(p => `
+          <tr>
+            <td>${p.name}</td><td>${p.code}</td><td>${p.stock}</td>
+            <td>${p.stock * BOTTLES_PER_PACK}</td><td>${p.stock * PRICE_PER_PACK}</td>
+            <td>${p.stock < URGENT_THRESHOLD ? 'ด่วนที่สุด (Urgent)' : 'ปกติ (Low Priority)'}</td>
+          </tr>
+        `).join('')}
+      </table><br/>
+      <h3>2. รายงานปริมาณการใช้รายเดือน (Monthly Usage - Pack)</h3>
+      <table border="1">
+        <tr style="background:#1e293b; color:#fff;">
+          <th>ชื่อโครงการ</th><th>รหัส</th>${MONTHS_TH.map(m => `<th>${m}</th>`).join('')}<th>รวมทั้งปี</th>
+        </tr>
+        ${targetProjects.map(p => {
+          const sum = p.monthly.reduce((a, b) => a + (b || 0), 0);
+          return `<tr><td>${p.name}</td><td>${p.code}</td>${p.monthly.map(v => `<td>${v || 0}</td>`).join('')}<td>${sum}</td></tr>`;
+        }).join('')}
+      </table><br/>
+      <h3>3. ประวัติธุรกรรม รับเข้า-จ่ายออก (Transactions)</h3>
+      <table border="1">
+        <tr style="background:#1e293b; color:#fff;">
+          <th>ID รายการ</th><th>วันที่-เวลา</th><th>ชื่อโครงการ</th><th>ประเภท</th><th>จำนวน (Pack)</th><th>ผู้บันทึก</th><th>หมายเหตุ</th>
+        </tr>
+        ${targetTx.map(t => `
+          <tr>
+            <td>${t.id}</td><td>${t.date}</td><td>${t.projectName}</td>
+            <td>${t.type === 'IN' ? 'รับเข้า' : 'จ่ายออก'}</td><td>${t.packs}</td><td>${t.user}</td><td>${t.note || '-'}</td>
+          </tr>
+        `).join('')}
+      </table></body></html>
+    `;
+    const blob = new Blob(['﻿' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Inventory_${fileLabel}_${new Date().toISOString().slice(0,10)}.xls`;
+    link.click();
+  }
+
+  function exportToCSV() {
+    const { targetProjects, fileLabel } = getExportTarget();
+    const headers = ['ชื่อโครงการ', 'รหัสโครงการ', 'คงเหลือ (Pack)', 'คงเหลือ (ขวด)', 'มูลค่าสต็อก (บาท)', 'สถานะจัดซื้อ'];
+    const rows = targetProjects.map(p => [
+      `"${p.name.replace(/"/g, '""')}"`,
+      `"${p.code}"`,
+      p.stock,
+      p.stock * BOTTLES_PER_PACK,
+      p.stock * PRICE_PER_PACK,
+      `"${p.stock < URGENT_THRESHOLD ? 'ด่วนที่สุด (Urgent)' : 'ปกติ (Low Priority)'}"`
+    ].join(','));
+    const csv = '﻿' + [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Stock_${fileLabel}_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+  }
+
+  function refreshAllUI() {
+    populateProjectDropdowns();
+    renderMasterTable();
+    renderTxTable();
+    if (document.getElementById('tab-analytics').classList.contains('active')) renderAnalyticsChart();
+  }
+
+  window.onload = refreshAllUI;
+</script>
+</body>
+</html>
